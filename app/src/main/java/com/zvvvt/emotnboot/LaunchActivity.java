@@ -5,11 +5,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
 
-/**
- * 无界面跳板 Activity：启动 Emotn UI 后立即结束。
- */
 public final class LaunchActivity extends Activity {
-
     private static final String EMOTN_PACKAGE = "com.oversea.aslauncher";
     private static final String EMOTN_ACTIVITY =
             "com.oversea.aslauncher.ui.main.MainActivity";
@@ -17,6 +13,12 @@ public final class LaunchActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        try {
+            WakeWatchService.start(getApplicationContext());
+        } catch (RuntimeException ignored) {
+        }
+
         openEmotn();
         finish();
         overridePendingTransition(0, 0);
@@ -36,7 +38,6 @@ public final class LaunchActivity extends Activity {
             startActivity(emotnIntent);
             return;
         } catch (RuntimeException ignored) {
-            // 显式组件启动失败时，退回到系统默认 HOME。
         }
 
         Intent homeIntent = new Intent(Intent.ACTION_MAIN);
@@ -49,7 +50,6 @@ public final class LaunchActivity extends Activity {
         try {
             startActivity(homeIntent);
         } catch (RuntimeException ignored) {
-            // 保持静默，避免开机循环崩溃。
         }
     }
 }
