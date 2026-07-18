@@ -2,6 +2,11 @@ plugins {
     id "com.android.application"
 }
 
+def permanentKeystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+def permanentKeystorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+def permanentKeyAlias = System.getenv("ANDROID_KEY_ALIAS")
+def permanentKeyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+
 android {
     namespace "com.zvvvt.emotnboot"
     compileSdk 35
@@ -14,9 +19,23 @@ android {
         versionName "1.5.0"
     }
 
+    signingConfigs {
+        permanentRelease {
+            if (permanentKeystorePath) {
+                storeFile file(permanentKeystorePath)
+                storePassword permanentKeystorePassword
+                keyAlias permanentKeyAlias
+                keyPassword permanentKeyPassword
+                enableV1Signing = true
+                enableV2Signing = true
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig signingConfigs.permanentRelease
         }
     }
 

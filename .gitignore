@@ -4,3 +4,11 @@ local.properties
 build/
 app/build/
 *.iml
+
+# Never commit Android signing keys or Base64 copies.
+*.jks
+*.keystore
+*.p12
+*.base64
+*.base64.txt
+signing/
