@@ -11,8 +11,15 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Translucent.NoTitleBar">
 
+        <!--
+          v1.5: automatic receiver/service run under a custom process name.
+          TV Manager's DoneRemoteBlacklist incorrectly treats a missing package
+          lookup as a system application and therefore skips force-stop.
+          The APK package name/applicationId remains com.zvvvt.emotnboot.
+        -->
         <receiver
             android:name=".BootReceiver"
+            android:process="com.zvvvt.emotnwatch"
             android:directBootAware="true"
             android:enabled="true"
             android:exported="true">
@@ -29,10 +36,12 @@
 
         <service
             android:name=".WakeWatchService"
+            android:process="com.zvvvt.emotnwatch"
             android:enabled="true"
             android:exported="false"
             android:stopWithTask="false" />
 
+        <!-- Automatic boot/wake path does not invoke this activity since v1.4. -->
         <activity
             android:name=".LaunchActivity"
             android:enabled="true"
