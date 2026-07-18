@@ -14,12 +14,9 @@ public final class LaunchActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        try {
-            WakeWatchService.start(getApplicationContext());
-        } catch (RuntimeException ignored) {
-        }
-
+        ContextActions.prepare(getApplicationContext());
         openEmotn();
+
         finish();
         overridePendingTransition(0, 0);
     }
@@ -50,6 +47,20 @@ public final class LaunchActivity extends Activity {
         try {
             startActivity(homeIntent);
         } catch (RuntimeException ignored) {
+        }
+    }
+
+    private static final class ContextActions {
+        private ContextActions() {
+        }
+
+        static void prepare(android.content.Context context) {
+            VendorCleanupBlocker.stopWithRetries(context);
+
+            try {
+                WakeWatchService.start(context);
+            } catch (RuntimeException ignored) {
+            }
         }
     }
 }

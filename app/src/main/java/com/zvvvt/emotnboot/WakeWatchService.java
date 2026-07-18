@@ -38,6 +38,9 @@ public final class WakeWatchService extends Service {
             }
 
             lastWakeElapsed = now;
+
+            // 唤醒时再次补停，避免厂商服务被其他组件重新拉起。
+            VendorCleanupBlocker.stopWithRetries(getApplicationContext());
             LaunchScheduler.schedule(getApplicationContext(), WAKE_DELAY_MS);
         }
     };
@@ -57,12 +60,14 @@ public final class WakeWatchService extends Service {
         super.onCreate();
         startAsForeground();
         registerWakeReceiver();
+        VendorCleanupBlocker.stopWithRetries(getApplicationContext());
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         startAsForeground();
         registerWakeReceiver();
+        VendorCleanupBlocker.stopWithRetries(getApplicationContext());
         return START_STICKY;
     }
 
