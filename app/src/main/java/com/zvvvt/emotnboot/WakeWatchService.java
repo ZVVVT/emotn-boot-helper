@@ -26,6 +26,12 @@ public final class WakeWatchService extends Service {
         public void onReceive(Context context, Intent intent) {
             String action = intent == null ? null : intent.getAction();
 
+            if (Intent.ACTION_SCREEN_OFF.equals(action)) {
+                // 待机前立即补停，不在此时打开任何界面。
+                VendorCleanupBlocker.stopWithRetries(getApplicationContext());
+                return;
+            }
+
             if (!Intent.ACTION_SCREEN_ON.equals(action)
                     && !Intent.ACTION_USER_PRESENT.equals(action)
                     && !Intent.ACTION_DREAMING_STOPPED.equals(action)) {
@@ -39,7 +45,7 @@ public final class WakeWatchService extends Service {
 
             lastWakeElapsed = now;
 
-            // 唤醒时再次补停，避免厂商服务被其他组件重新拉起。
+            // 唤醒时先补停，再延迟返回 Emotn，避免与酷喵桌面抢启动时序。
             VendorCleanupBlocker.stopWithRetries(getApplicationContext());
             LaunchScheduler.schedule(getApplicationContext(), WAKE_DELAY_MS);
         }
@@ -60,6 +66,7 @@ public final class WakeWatchService extends Service {
         super.onCreate();
         startAsForeground();
         registerWakeReceiver();
+        VendorCleanupBlocker.startWatchdog(getApplicationContext());
         VendorCleanupBlocker.stopWithRetries(getApplicationContext());
     }
 
@@ -67,6 +74,7 @@ public final class WakeWatchService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         startAsForeground();
         registerWakeReceiver();
+        VendorCleanupBlocker.startWatchdog(getApplicationContext());
         VendorCleanupBlocker.stopWithRetries(getApplicationContext());
         return START_STICKY;
     }
@@ -77,6 +85,7 @@ public final class WakeWatchService extends Service {
         }
 
         IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
         filter.addAction(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_USER_PRESENT);
         filter.addAction(Intent.ACTION_DREAMING_STOPPED);
@@ -117,6 +126,8 @@ public final class WakeWatchService extends Service {
 
     @Override
     public void onDestroy() {
+        VendorCleanupBlocker.stopWatchdog();
+
         if (receiverRegistered) {
             try {
                 unregisterReceiver(wakeReceiver);
@@ -124,6 +135,7 @@ public final class WakeWatchService extends Service {
             }
             receiverRegistered = false;
         }
+
         super.onDestroy();
     }
 
